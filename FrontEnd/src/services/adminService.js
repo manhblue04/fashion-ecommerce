@@ -36,5 +36,10 @@ export const createCoupon = (data) => api.post(`${a}/coupons`, data)
 export const updateCoupon = (id, data) => api.put(`${a}/coupons/${id}`, data)
 export const deleteCoupon = (id) => api.delete(`${a}/coupons/${id}`)
 
+export const getOutfits = () => api.get(`${a}/outfits`)
+export const createOutfit = (data) => api.post(`${a}/outfits`, data)
+export const updateOutfit = (id, data) => api.put(`${a}/outfits/${id}`, data)
+export const deleteOutfit = (id) => api.delete(`${a}/outfits/${id}`)
+
 export const getSettings = () => api.get(`${a}/settings`)
 export const updateSettings = (data) => api.put(`${a}/settings`, data)

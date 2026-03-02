@@ -64,6 +64,49 @@ const useCartStore = create((set, get) => ({
     toast.success('Đã xóa khỏi giỏ hàng')
   },
 
+  addOutfitItems: (selectedItems, discountPercent = 0) => {
+    const items = [...get().items]
+    const multiplier = 1 - discountPercent / 100
+
+    for (const si of selectedItems) {
+      const product = si.product
+      if (!product) continue
+
+      const size = si.size || ''
+      const color = si.color || ''
+      const basePrice = product.discountPrice > 0 && product.discountPrice < product.price
+        ? product.discountPrice
+        : product.price
+      const setPrice = Math.round(basePrice * multiplier)
+
+      const cartKey = `${product._id}_set_${size}_${color}`
+      const idx = items.findIndex((i) => i.cartKey === cartKey)
+
+      if (idx > -1) {
+        items[idx].quantity += 1
+      } else {
+        items.push({
+          cartKey,
+          product: product._id,
+          name: product.name,
+          slug: product.slug,
+          image: product.images?.[0]?.url || '',
+          price: setPrice,
+          originalPrice: product.price,
+          stock: product.stock || 99,
+          quantity: 1,
+          size,
+          color,
+          isOutfitItem: true,
+        })
+      }
+    }
+
+    localStorage.setItem('cart', JSON.stringify(items))
+    set({ items })
+    toast.success('Đã thêm cả set vào giỏ hàng')
+  },
+
   clearCart: () => {
     localStorage.removeItem('cart')
     set({ items: [] })

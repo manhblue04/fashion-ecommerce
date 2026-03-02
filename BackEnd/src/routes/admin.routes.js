@@ -46,6 +46,12 @@ router.post('/coupons', ac.createCoupon)
 router.put('/coupons/:id', ac.updateCoupon)
 router.delete('/coupons/:id', ac.deleteCoupon)
 
+// Outfits
+router.get('/outfits', ac.getAllOutfits)
+router.post('/outfits', ac.createOutfit)
+router.put('/outfits/:id', ac.updateOutfit)
+router.delete('/outfits/:id', ac.deleteOutfit)
+
 // Settings
 router.get('/settings', ac.getSettings)
 router.put('/settings', ac.updateSettings)

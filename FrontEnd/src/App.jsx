@@ -31,16 +31,20 @@ const UserMgmtPage = lazy(() => import('./pages/admin/UserMgmtPage'))
 const ReviewMgmtPage = lazy(() => import('./pages/admin/ReviewMgmtPage'))
 const BannerMgmtPage = lazy(() => import('./pages/admin/BannerMgmtPage'))
 const CouponMgmtPage = lazy(() => import('./pages/admin/CouponMgmtPage'))
+const OutfitMgmtPage = lazy(() => import('./pages/admin/OutfitMgmtPage'))
 const SettingPage = lazy(() => import('./pages/admin/SettingPage'))
 
 function App() {
   const { token, fetchMe } = useAuthStore()
   const fetchWishlist = useWishlistStore((s) => s.fetchWishlist)
 
+  const fetchSavedOutfitCount = useWishlistStore((s) => s.fetchSavedOutfitCount)
+
   useEffect(() => {
     if (token) {
       fetchMe()
       fetchWishlist()
+      fetchSavedOutfitCount()
     }
   }, [token])
 
@@ -75,6 +79,7 @@ function App() {
             <Route path="nguoi-dung" element={<UserMgmtPage />} />
             <Route path="danh-gia" element={<ReviewMgmtPage />} />
             <Route path="banner" element={<BannerMgmtPage />} />
+            <Route path="outfit" element={<OutfitMgmtPage />} />
             <Route path="ma-giam-gia" element={<CouponMgmtPage />} />
             <Route path="cai-dat" element={<SettingPage />} />
           </Route>

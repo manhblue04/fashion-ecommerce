@@ -495,6 +495,93 @@ exports.deleteCoupon = async (req, res, next) => {
   }
 }
 
+// ── Outfits ──
+const Outfit = require('../models/Outfit')
+
+exports.getAllOutfits = async (req, res, next) => {
+  try {
+    const outfits = await Outfit.find()
+      .sort('order')
+      .populate({ path: 'items.product', select: 'name slug images price discountPrice brand' })
+    res.json({ success: true, outfits })
+  } catch (error) {
+    next(error)
+  }
+}
+
+exports.createOutfit = async (req, res, next) => {
+  try {
+    const { name, description, image, items, order, isActive, discountPercent, badge } = req.body
+
+    let imageData = { public_id: `outfit_${Date.now()}`, url: '' }
+    if (image && image.startsWith('data:')) {
+      const result = await cloudinary.uploader.upload(image, { folder: 'outfits' })
+      imageData = { public_id: result.public_id, url: result.secure_url }
+    } else if (image) {
+      imageData.url = image
+    }
+
+    const outfit = await Outfit.create({
+      name,
+      description,
+      image: imageData,
+      items: items || [],
+      order: order || 0,
+      isActive: isActive !== undefined ? isActive : true,
+      discountPercent: discountPercent ?? 10,
+      badge: badge || '',
+    })
+
+    res.status(201).json({ success: true, message: 'Tạo outfit thành công', outfit })
+  } catch (error) {
+    next(error)
+  }
+}
+
+exports.updateOutfit = async (req, res, next) => {
+  try {
+    const outfit = await Outfit.findById(req.params.id)
+    if (!outfit) return res.status(404).json({ success: false, message: 'Không tìm thấy outfit' })
+
+    if (req.body.image && req.body.image.startsWith('data:')) {
+      if (outfit.image?.public_id && !outfit.image.public_id.startsWith('outfit_')) {
+        await cloudinary.uploader.destroy(outfit.image.public_id)
+      }
+      const result = await cloudinary.uploader.upload(req.body.image, { folder: 'outfits' })
+      req.body.image = { public_id: result.public_id, url: result.secure_url }
+    } else {
+      delete req.body.image
+    }
+
+    Object.assign(outfit, req.body)
+    await outfit.save()
+
+    const populated = await Outfit.findById(outfit._id).populate({
+      path: 'items.product',
+      select: 'name slug images price discountPrice brand',
+    })
+
+    res.json({ success: true, message: 'Cập nhật outfit thành công', outfit: populated })
+  } catch (error) {
+    next(error)
+  }
+}
+
+exports.deleteOutfit = async (req, res, next) => {
+  try {
+    const outfit = await Outfit.findById(req.params.id)
+    if (!outfit) return res.status(404).json({ success: false, message: 'Không tìm thấy outfit' })
+
+    if (outfit.image?.public_id && !outfit.image.public_id.startsWith('outfit_')) {
+      await cloudinary.uploader.destroy(outfit.image.public_id)
+    }
+    await outfit.deleteOne()
+    res.json({ success: true, message: 'Xóa outfit thành công' })
+  } catch (error) {
+    next(error)
+  }
+}
+
 // ── Settings ──
 exports.getSettings = async (req, res, next) => {
   try {

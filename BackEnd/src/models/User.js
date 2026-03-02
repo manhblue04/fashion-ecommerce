@@ -41,6 +41,7 @@ const userSchema = new mongoose.Schema(
       url: { type: String, default: '' },
     },
     addresses: [addressSchema],
+    savedOutfits: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Outfit' }],
     isBlocked: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: false },
     verifyToken: String,

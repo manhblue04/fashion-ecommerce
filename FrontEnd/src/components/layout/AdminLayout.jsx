@@ -15,6 +15,7 @@ import {
   MenuUnfoldOutlined,
   LogoutOutlined,
   HomeOutlined,
+  SkinOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
 
@@ -28,6 +29,7 @@ const menuItems = [
   { key: '/admin/nguoi-dung', icon: <UserOutlined />, label: <Link to="/admin/nguoi-dung">Người dùng</Link> },
   { key: '/admin/danh-gia', icon: <StarOutlined />, label: <Link to="/admin/danh-gia">Đánh giá</Link> },
   { key: '/admin/banner', icon: <PictureOutlined />, label: <Link to="/admin/banner">Banner</Link> },
+  { key: '/admin/outfit', icon: <SkinOutlined />, label: <Link to="/admin/outfit">Outfit</Link> },
   { key: '/admin/ma-giam-gia', icon: <TagOutlined />, label: <Link to="/admin/ma-giam-gia">Mã giảm giá</Link> },
   { key: '/admin/cai-dat', icon: <SettingOutlined />, label: <Link to="/admin/cai-dat">Cài đặt</Link> },
 ]

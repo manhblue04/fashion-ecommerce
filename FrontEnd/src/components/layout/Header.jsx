@@ -11,7 +11,7 @@ import { formatPrice } from '../../utils/formatPrice'
 export default function Header() {
   const { user, logout } = useAuthStore()
   const items = useCartStore((s) => s.items)
-  const wishlistItems = useWishlistStore((s) => s.items)
+  const wishlistTotalCount = useWishlistStore((s) => s.items.length + s.savedOutfitCount)
   const navigate = useNavigate()
 
   const [mobileMenu, setMobileMenu] = useState(false)
@@ -24,7 +24,7 @@ export default function Header() {
   const userMenuRef = useRef(null)
 
   const cartCount = items.reduce((s, i) => s + i.quantity, 0)
-  const wishlistCount = wishlistItems.length
+  const wishlistCount = wishlistTotalCount
 
   useEffect(() => {
     if (debouncedKeyword.length >= 2) {

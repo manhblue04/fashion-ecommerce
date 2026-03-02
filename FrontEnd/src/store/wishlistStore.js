@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 
 const useWishlistStore = create((set, get) => ({
   items: [],
+  savedOutfitCount: 0,
   loading: false,
 
   fetchWishlist: async () => {
@@ -13,6 +14,13 @@ const useWishlistStore = create((set, get) => ({
     } catch {
       set({ items: [] })
     }
+  },
+
+  fetchSavedOutfitCount: async () => {
+    try {
+      const res = await api.get('/outfits/saved/ids')
+      set({ savedOutfitCount: res.ids?.length || 0 })
+    } catch { /* empty */ }
   },
 
   toggleWishlist: async (productId) => {
@@ -28,6 +36,10 @@ const useWishlistStore = create((set, get) => ({
 
   isInWishlist: (productId) => {
     return get().items.some((item) => item._id === productId)
+  },
+
+  get totalCount() {
+    return get().items.length + get().savedOutfitCount
   },
 }))
 

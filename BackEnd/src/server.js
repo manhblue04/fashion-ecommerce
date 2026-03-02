@@ -39,6 +39,7 @@ app.use('/api/banners', require('./routes/banner.routes'))
 app.use('/api/settings', require('./routes/setting.routes'))
 app.use('/api/admin', require('./routes/admin.routes'))
 app.use('/api/payment', require('./routes/payment.routes'))
+app.use('/api/outfits', require('./routes/outfit.routes'))
 
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Server đang hoạt động' })
