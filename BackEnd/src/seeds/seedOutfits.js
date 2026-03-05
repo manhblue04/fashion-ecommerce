@@ -1,7 +1,7 @@
 require('dotenv').config()
 const mongoose = require('mongoose')
-const Product = require('./models/Product')
-const Outfit = require('./models/Outfit')
+const Product = require('../models/Product')
+const Outfit = require('../models/Outfit')
 
 const unsplash = (id, w = 900) => `https://images.unsplash.com/${id}?w=${w}&q=80&auto=format&fit=crop`
 
