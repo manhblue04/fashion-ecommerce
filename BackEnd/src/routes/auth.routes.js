@@ -12,6 +12,7 @@ const {
   addAddress,
   updateAddress,
   deleteAddress,
+  changePassword,
 } = require('../controllers/authController')
 const { protect } = require('../middlewares/auth')
 const validate = require('../middlewares/validate')
@@ -35,5 +36,6 @@ router.put('/avatar', protect, updateAvatar)
 router.post('/address', protect, addAddress)
 router.put('/address/:addressId', protect, updateAddress)
 router.delete('/address/:addressId', protect, deleteAddress)
+router.put('/change-password', protect, changePassword)
 
 module.exports = router

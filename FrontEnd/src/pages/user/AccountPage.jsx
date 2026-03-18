@@ -4,9 +4,13 @@ import toast from 'react-hot-toast'
 import api from '../../services/api'
 
 export default function AccountPage() {
-  const { user, updateProfile, updateAvatar, loading } = useAuthStore()
+  const { user, updateProfile, updateAvatar, changePassword, loading } = useAuthStore()
   const [name, setName] = useState(user?.name || '')
   const [phone, setPhone] = useState(user?.phone || '')
+
+  // Change password state
+  const [showPasswordForm, setShowPasswordForm] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
 
   const [addressForm, setAddressForm] = useState({ fullName: '', phone: '', addressLine: '', city: '', district: '', ward: '', isDefault: false })
   const [showAddressForm, setShowAddressForm] = useState(false)
@@ -23,6 +27,25 @@ export default function AccountPage() {
     const reader = new FileReader()
     reader.onload = () => updateAvatar(reader.result)
     reader.readAsDataURL(file)
+  }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      return toast.error('Mật khẩu xác nhận không khớp')
+    }
+    if (passwordForm.newPassword.length < 6) {
+      return toast.error('Mật khẩu tối thiểu 6 ký tự')
+    }
+    const success = await changePassword({
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword,
+      confirmPassword: passwordForm.confirmPassword
+    })
+    if (success) {
+      setShowPasswordForm(false)
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    }
   }
 
   const handleAddAddress = async (e) => {
@@ -92,6 +115,64 @@ export default function AccountPage() {
             {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
           </button>
         </form>
+
+        {/* Change Password */}
+        <div className="bg-white border border-gray-100 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-gray-900">Đổi mật khẩu</h2>
+            {!showPasswordForm && (
+              <button onClick={() => setShowPasswordForm(true)} className="text-sm text-amber-600 hover:text-amber-700 font-medium">
+                Đổi mật khẩu
+              </button>
+            )}
+          </div>
+
+          {showPasswordForm ? (
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
+                <input
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  required
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
+                <input
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
+                <input
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  required
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button type="submit" disabled={loading} className="px-6 py-2.5 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition disabled:opacity-50">
+                  {loading ? 'Đang xử lý...' : 'Xác nhận'}
+                </button>
+                <button type="button" onClick={() => { setShowPasswordForm(false); setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' }) }} className="px-6 py-2.5 border border-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition">
+                  Hủy
+                </button>
+              </div>
+            </form>
+          ) : (
+            <p className="text-sm text-gray-500">Bảo mật tài khoản bằng cách đặt mật khẩu mạnh</p>
+          )}
+        </div>
 
         {/* Addresses */}
         <div className="bg-white border border-gray-100 rounded-xl p-6">

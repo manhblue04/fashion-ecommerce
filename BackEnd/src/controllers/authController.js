@@ -269,6 +269,39 @@ exports.deleteAddress = async (req, res, next) => {
   }
 }
 
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ success: false, message: 'Mật khẩu xác nhận không khớp' })
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'Mật khẩu tối thiểu 6 ký tự' })
+    }
+
+    const user = await User.findById(req.user._id).select('+password')
+
+    // Check if user has password (Google users may not have password)
+    if (!user.password) {
+      return res.status(400).json({ success: false, message: 'Tài khoản Google không thể đổi mật khẩu' })
+    }
+
+    const isMatch = await user.comparePassword(currentPassword)
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Mật khẩu hiện tại không đúng' })
+    }
+
+    user.password = newPassword
+    await user.save()
+
+    res.json({ success: true, message: 'Đổi mật khẩu thành công' })
+  } catch (error) {
+    next(error)
+  }
+}
+
 exports.googleLogin = async (req, res, next) => {
   try {
     const { credential } = req.body

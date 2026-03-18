@@ -59,6 +59,9 @@ const useAuthStore = create((set, get) => ({
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     set({ user: null, token: null })
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.disableAutoSelect()
+    }
     toast.success('Đăng xuất thành công')
   },
 
@@ -97,6 +100,20 @@ const useAuthStore = create((set, get) => ({
       toast.success(res.message)
     } catch (err) {
       toast.error(err.message)
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  changePassword: async (data) => {
+    set({ loading: true })
+    try {
+      const res = await api.put('/auth/change-password', data)
+      toast.success(res.message)
+      return true
+    } catch (err) {
+      toast.error(err.message)
+      return false
     } finally {
       set({ loading: false })
     }

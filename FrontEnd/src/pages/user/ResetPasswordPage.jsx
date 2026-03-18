@@ -17,7 +17,7 @@ export default function ResetPasswordPage() {
 
     setLoading(true)
     try {
-      const res = await api.put(`/auth/reset-password/${token}`, { password })
+      const res = await api.put(`/auth/reset-password/${token}`, { password, confirmPassword })
       toast.success(res.message)
       setDone(true)
     } catch (err) {
