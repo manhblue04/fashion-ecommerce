@@ -5,7 +5,7 @@ import useAuthStore from '../../store/authStore'
 import useCartStore from '../../store/cartStore'
 import useWishlistStore from '../../store/wishlistStore'
 import useDebounce from '../../hooks/useDebounce'
-import { searchSuggestions } from '../../services/productService'
+import { searchSuggestions, getBestSellers } from '../../services/productService'
 import { HiOutlineSun, HiOutlineMoon } from 'react-icons/hi'
 import { formatPrice } from '../../utils/formatPrice'
 import useThemeStore from '../../store/themeStore'
@@ -23,6 +23,8 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [keyword, setKeyword] = useState('')
   const [suggestions, setSuggestions] = useState([])
+  const [noResults, setNoResults] = useState(false)
+  const [bestSellers, setBestSellers] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -35,10 +37,18 @@ export default function Header() {
   const wishlistCount = wishlistTotalCount
 
   useEffect(() => {
+    getBestSellers().then((res) => setBestSellers(res.products?.slice(0, 5) || [])).catch(() => {})
+  }, [])
+
+  useEffect(() => {
     if (debouncedKeyword.length >= 2) {
-      searchSuggestions(debouncedKeyword).then((res) => setSuggestions(res.suggestions))
+      searchSuggestions(debouncedKeyword).then((res) => {
+        setSuggestions(res.suggestions)
+        setNoResults(res.suggestions.length === 0)
+      })
     } else {
       setSuggestions([])
+      setNoResults(false)
     }
   }, [debouncedKeyword])
 
@@ -112,22 +122,48 @@ export default function Header() {
                 />
               </div>
             </form>
-            {searchOpen && suggestions.length > 0 && (
+            {searchOpen && debouncedKeyword.length >= 2 && (suggestions.length > 0 || noResults) && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden z-50">
-                {suggestions.map((p) => (
-                  <Link
-                    key={p._id}
-                    to={`/san-pham/${p.slug}`}
-                    onClick={() => { setSearchOpen(false); setKeyword('') }}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition"
-                  >
-                    <img src={p.images?.[0]?.url} alt={p.name} className="w-10 h-10 object-cover rounded" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{p.name}</p>
-                      <p className="text-sm text-amber-600">{formatPrice(p.discountPrice || p.price)}</p>
+                {suggestions.length > 0 ? (
+                  suggestions.map((p) => (
+                    <Link
+                      key={p._id}
+                      to={`/san-pham/${p.slug}`}
+                      onClick={() => { setSearchOpen(false); setKeyword('') }}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition"
+                    >
+                      <img src={p.images?.[0]?.url} alt={p.name} className="w-10 h-10 object-cover rounded" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{p.name}</p>
+                        <p className="text-sm text-amber-600">{formatPrice(p.discountPrice || p.price)}</p>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <>
+                    <div className="px-4 py-2.5 border-b border-gray-100">
+                      <p className="text-xs text-gray-400">Không tìm thấy &ldquo;{debouncedKeyword}&rdquo;</p>
                     </div>
-                  </Link>
-                ))}
+                    <div className="px-4 py-2 bg-gray-50">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Sản phẩm bán chạy nhất</p>
+                    </div>
+                    {bestSellers.map((p) => (
+                      <Link
+                        key={p._id}
+                        to={`/san-pham/${p.slug}`}
+                        onClick={() => { setSearchOpen(false); setKeyword('') }}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition"
+                      >
+                        <img src={p.images?.[0]?.url} alt={p.name} className="w-10 h-10 object-cover rounded" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
+                          <p className="text-sm text-amber-600">{formatPrice(p.discountPrice > 0 ? p.discountPrice : p.price)}</p>
+                        </div>
+                        <span className="text-xs text-gray-400 shrink-0">🔥 Bán chạy</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
               </div>
             )}
           </div>

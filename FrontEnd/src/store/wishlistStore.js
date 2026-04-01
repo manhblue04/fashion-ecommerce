@@ -38,6 +38,10 @@ const useWishlistStore = create((set, get) => ({
     return get().items.some((item) => item._id === productId)
   },
 
+  clearWishlist: () => {
+    set({ items: [], savedOutfitCount: 0 })
+  },
+
   get totalCount() {
     return get().items.length + get().savedOutfitCount
   },

@@ -1,19 +1,44 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { HiOutlineExclamationCircle, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi'
 import useAuthStore from '../../store/authStore'
+
+const ERROR_HINTS = {
+  'Email hoặc mật khẩu không đúng': { field: 'both', hint: null },
+  'Vui lòng xác thực email trước khi đăng nhập': {
+    field: 'email',
+    hint: 'Kiểm tra hộp thư và nhấn vào link xác thực chúng tôi đã gửi.',
+  },
+  'Tài khoản đã bị khóa': {
+    field: 'both',
+    hint: 'Liên hệ hỗ trợ để được mở khóa tài khoản.',
+  },
+}
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
+  const [error, setError] = useState('')
+  const [showPass, setShowPass] = useState(false)
   const { login, googleLogin, loading } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from?.pathname || '/'
 
+  const errInfo = ERROR_HINTS[error] || { field: 'both', hint: null }
+
+  const handleChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    if (error) setError('')
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const user = await login(form)
-    if (user) {
-      navigate(user.role === 'admin' ? '/admin' : from, { replace: true })
+    setError('')
+    const result = await login(form, true)
+    if (result?.user) {
+      navigate(result.user.role === 'admin' ? '/admin' : from, { replace: true })
+    } else if (result?.error) {
+      setError(result.error)
     }
   }
 
@@ -34,8 +59,16 @@ export default function LoginPage() {
     window.google.accounts.id.prompt()
   }, [handleGoogleResponse])
 
-  // Fallback message if Google login is not configured
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+
+  const inputClass = (field) => {
+    const hasErr = error && (errInfo.field === 'both' || errInfo.field === field)
+    return `w-full px-4 py-3 border rounded-lg text-sm focus:outline-none transition ${
+      hasErr
+        ? 'border-red-400 bg-red-50 focus:border-red-500'
+        : 'border-gray-200 focus:border-amber-500'
+    }`
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gray-50">
@@ -45,28 +78,50 @@ export default function LoginPage() {
           <p className="text-gray-500 mt-2">Chào mừng bạn trở lại</p>
         </div>
 
+        {/* Error banner */}
+        {error && (
+          <div className="flex gap-2.5 items-start bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-5">
+            <HiOutlineExclamationCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-red-700">{error}</p>
+              {errInfo.hint && <p className="text-xs text-red-500 mt-0.5">{errInfo.hint}</p>}
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
             <input
               type="email"
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              onChange={handleChange('email')}
               required
               placeholder="your@email.com"
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-500 transition"
+              className={inputClass('email')}
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Mật khẩu</label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-              placeholder="••••••••"
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-500 transition"
-            />
+            <div className="relative">
+              <input
+                type={showPass ? 'text' : 'password'}
+                value={form.password}
+                onChange={handleChange('password')}
+                required
+                placeholder="••••••••"
+                className={`${inputClass('password')} pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                tabIndex={-1}
+              >
+                {showPass ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center justify-end">

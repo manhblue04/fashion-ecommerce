@@ -21,8 +21,6 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
-  const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 })
-  const [zooming, setZooming] = useState(false)
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewComment, setReviewComment] = useState('')
   const [reviewHover, setReviewHover] = useState(0)
@@ -75,11 +73,6 @@ export default function ProductDetailPage() {
     window.location.href = '/gio-hang'
   }
 
-  const handleZoom = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    setZoomPos({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 })
-  }
-
   const handleSubmitReview = async (e) => {
     e.preventDefault()
     if (!user) return toast.error('Vui lòng đăng nhập để đánh giá')
@@ -110,19 +103,13 @@ export default function ProductDetailPage() {
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Image Gallery with Zoom */}
+        {/* Image Gallery */}
         <div>
-          <div
-            className="aspect-square rounded-2xl overflow-hidden bg-gray-100 mb-4 relative cursor-crosshair"
-            onMouseEnter={() => setZooming(true)}
-            onMouseLeave={() => setZooming(false)}
-            onMouseMove={handleZoom}
-          >
+          <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 mb-4">
             <img
               src={product.images?.[selectedImage]?.url}
               alt={product.name}
               className="w-full h-full object-cover"
-              style={zooming ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`, transform: 'scale(2)', transition: 'transform 0.1s ease' } : { transition: 'transform 0.3s ease' }}
             />
           </div>
           {product.images?.length > 1 && (

@@ -57,7 +57,7 @@ function App() {
 
   return (
     <Router>
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+      <Toaster position="top-right" toastOptions={{ duration: 1500 }} />
       <ScrollToTop />
       <Suspense fallback={<LoadingSpinner size="lg" />}>
         <Routes>

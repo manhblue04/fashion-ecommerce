@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import api from '../services/api'
 import toast from 'react-hot-toast'
+import useCartStore from './cartStore'
+import useWishlistStore from './wishlistStore'
 
 const useAuthStore = create((set, get) => ({
   user: JSON.parse(localStorage.getItem('user')) || null,
@@ -21,18 +23,30 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  login: async (data) => {
+  login: async (data, returnError = false) => {
     set({ loading: true })
     try {
       const res = await api.post('/auth/login', data)
       localStorage.setItem('token', res.token)
       localStorage.setItem('user', JSON.stringify(res.user))
       set({ user: res.user, token: res.token })
+
+      // Restore cart saved for this user (if any)
+      const savedCart = localStorage.getItem(`cart_${res.user._id}`)
+      if (savedCart) {
+        try {
+          const parsed = JSON.parse(savedCart)
+          localStorage.setItem('cart', savedCart)
+          useCartStore.setState({ items: parsed })
+          localStorage.removeItem(`cart_${res.user._id}`)
+        } catch { /* ignore */ }
+      }
+
       toast.success('Đăng nhập thành công')
-      return res.user
+      return returnError ? { user: res.user } : res.user
     } catch (err) {
-      toast.error(err.message)
-      return null
+      if (!returnError) toast.error(err.message)
+      return returnError ? { error: err.message } : null
     } finally {
       set({ loading: false })
     }
@@ -45,6 +59,18 @@ const useAuthStore = create((set, get) => ({
       localStorage.setItem('token', res.token)
       localStorage.setItem('user', JSON.stringify(res.user))
       set({ user: res.user, token: res.token })
+
+      // Restore cart saved for this user (if any)
+      const savedCart = localStorage.getItem(`cart_${res.user._id}`)
+      if (savedCart) {
+        try {
+          const parsed = JSON.parse(savedCart)
+          localStorage.setItem('cart', savedCart)
+          useCartStore.setState({ items: parsed })
+          localStorage.removeItem(`cart_${res.user._id}`)
+        } catch { /* ignore */ }
+      }
+
       toast.success('Đăng nhập thành công')
       return res.user
     } catch (err) {
@@ -56,8 +82,19 @@ const useAuthStore = create((set, get) => ({
   },
 
   logout: () => {
+    const currentUser = get().user
+    const currentCart = localStorage.getItem('cart')
+
+    // Backup cart keyed by userId so it's restored on next login
+    if (currentUser?._id && currentCart && currentCart !== '[]') {
+      localStorage.setItem(`cart_${currentUser._id}`, currentCart)
+    }
+
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    localStorage.removeItem('cart')
+    useCartStore.getState().clearCart()
+    useWishlistStore.getState().clearWishlist()
     set({ user: null, token: null })
     if (window.google?.accounts?.id) {
       window.google.accounts.id.disableAutoSelect()
