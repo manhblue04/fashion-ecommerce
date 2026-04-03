@@ -3,6 +3,7 @@ import api from '../services/api'
 import toast from 'react-hot-toast'
 import useCartStore from './cartStore'
 import useWishlistStore from './wishlistStore'
+import socketService from '../services/socketService'
 
 const useAuthStore = create((set, get) => ({
   user: JSON.parse(localStorage.getItem('user')) || null,
@@ -95,6 +96,7 @@ const useAuthStore = create((set, get) => ({
     localStorage.removeItem('cart')
     useCartStore.getState().clearCart()
     useWishlistStore.getState().clearWishlist()
+    socketService.disconnect()
     set({ user: null, token: null })
     if (window.google?.accounts?.id) {
       window.google.accounts.id.disableAutoSelect()

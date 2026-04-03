@@ -28,6 +28,13 @@ const settingSchema = new mongoose.Schema(
       momo: { type: Boolean, default: false },
       vnpay: { type: Boolean, default: false },
     },
+    ai: {
+      provider: { type: String, enum: ['openai', 'gemini'], default: 'openai' },
+      apiKey: { type: String, default: '' },
+      model: { type: String, default: 'gpt-4o-mini' },
+      autoReply: { type: Boolean, default: false },
+      systemPrompt: { type: String, default: '' },
+    },
   },
   { timestamps: true }
 )

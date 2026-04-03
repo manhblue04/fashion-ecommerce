@@ -37,6 +37,7 @@ const BannerMgmtPage = lazy(() => import('./pages/admin/BannerMgmtPage'))
 const CouponMgmtPage = lazy(() => import('./pages/admin/CouponMgmtPage'))
 const OutfitMgmtPage = lazy(() => import('./pages/admin/OutfitMgmtPage'))
 const SettingPage = lazy(() => import('./pages/admin/SettingPage'))
+const MessageMgmtPage = lazy(() => import('./pages/admin/MessageMgmtPage'))
 
 function App() {
   const { token, fetchMe } = useAuthStore()
@@ -87,6 +88,7 @@ function App() {
             <Route path="danh-muc" element={<CategoryMgmtPage />} />
             <Route path="don-hang" element={<OrderMgmtPage />} />
             <Route path="nguoi-dung" element={<UserMgmtPage />} />
+            <Route path="tin-nhan" element={<MessageMgmtPage />} />
             <Route path="danh-gia" element={<ReviewMgmtPage />} />
             <Route path="banner" element={<BannerMgmtPage />} />
             <Route path="outfit" element={<OutfitMgmtPage />} />

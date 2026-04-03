@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
-import { Layout, Menu, Button, Dropdown, Avatar, theme } from 'antd'
+import { Layout, Menu, Button, Dropdown, Avatar, Badge, theme } from 'antd'
 import {
   DashboardOutlined,
   ShoppingOutlined,
@@ -16,30 +16,55 @@ import {
   LogoutOutlined,
   HomeOutlined,
   SkinOutlined,
+  MessageOutlined,
 } from '@ant-design/icons'
 import useAuthStore from '../../store/authStore'
+import useChatStore from '../../store/chatStore'
 
 const { Header, Sider, Content } = Layout
 
-const menuItems = [
-  { key: '/admin', icon: <DashboardOutlined />, label: <Link to="/admin">Tổng quan</Link> },
-  { key: '/admin/san-pham', icon: <ShoppingOutlined />, label: <Link to="/admin/san-pham">Sản phẩm</Link> },
-  { key: '/admin/danh-muc', icon: <AppstoreOutlined />, label: <Link to="/admin/danh-muc">Danh mục</Link> },
-  { key: '/admin/don-hang', icon: <OrderedListOutlined />, label: <Link to="/admin/don-hang">Đơn hàng</Link> },
-  { key: '/admin/nguoi-dung', icon: <UserOutlined />, label: <Link to="/admin/nguoi-dung">Người dùng</Link> },
-  { key: '/admin/danh-gia', icon: <StarOutlined />, label: <Link to="/admin/danh-gia">Đánh giá</Link> },
-  { key: '/admin/banner', icon: <PictureOutlined />, label: <Link to="/admin/banner">Banner</Link> },
-  { key: '/admin/outfit', icon: <SkinOutlined />, label: <Link to="/admin/outfit">Outfit</Link> },
-  { key: '/admin/ma-giam-gia', icon: <TagOutlined />, label: <Link to="/admin/ma-giam-gia">Mã giảm giá</Link> },
-  { key: '/admin/cai-dat', icon: <SettingOutlined />, label: <Link to="/admin/cai-dat">Cài đặt</Link> },
-]
-
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
-  const { user, logout } = useAuthStore()
+  const { user, token, logout } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
   const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken()
+
+  const unreadCount = useChatStore((s) => s.unreadCount)
+  const initSocket = useChatStore((s) => s.initSocket)
+  const fetchUnreadCount = useChatStore((s) => s.fetchUnreadCount)
+
+  useEffect(() => {
+    if (token) {
+      initSocket(token)
+      fetchUnreadCount()
+      const interval = setInterval(fetchUnreadCount, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [token, initSocket, fetchUnreadCount])
+
+  const menuItems = [
+    { key: '/admin', icon: <DashboardOutlined />, label: <Link to="/admin">Tổng quan</Link> },
+    { key: '/admin/san-pham', icon: <ShoppingOutlined />, label: <Link to="/admin/san-pham">Sản phẩm</Link> },
+    { key: '/admin/danh-muc', icon: <AppstoreOutlined />, label: <Link to="/admin/danh-muc">Danh mục</Link> },
+    { key: '/admin/don-hang', icon: <OrderedListOutlined />, label: <Link to="/admin/don-hang">Đơn hàng</Link> },
+    { key: '/admin/nguoi-dung', icon: <UserOutlined />, label: <Link to="/admin/nguoi-dung">Người dùng</Link> },
+    {
+      key: '/admin/tin-nhan',
+      icon: <MessageOutlined />,
+      label: (
+        <Link to="/admin/tin-nhan" className="flex items-center justify-between w-full">
+          <span>Tin nhắn</span>
+          {unreadCount > 0 && <Badge count={unreadCount} size="small" />}
+        </Link>
+      ),
+    },
+    { key: '/admin/danh-gia', icon: <StarOutlined />, label: <Link to="/admin/danh-gia">Đánh giá</Link> },
+    { key: '/admin/banner', icon: <PictureOutlined />, label: <Link to="/admin/banner">Banner</Link> },
+    { key: '/admin/outfit', icon: <SkinOutlined />, label: <Link to="/admin/outfit">Outfit</Link> },
+    { key: '/admin/ma-giam-gia', icon: <TagOutlined />, label: <Link to="/admin/ma-giam-gia">Mã giảm giá</Link> },
+    { key: '/admin/cai-dat', icon: <SettingOutlined />, label: <Link to="/admin/cai-dat">Cài đặt</Link> },
+  ]
 
   const dropdownItems = [
     { key: 'home', icon: <HomeOutlined />, label: 'Về trang chủ', onClick: () => navigate('/') },
@@ -61,7 +86,7 @@ export default function AdminLayout() {
           <Button type="text" icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
           <Dropdown menu={{ items: dropdownItems }} placement="bottomRight">
             <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Avatar src={user?.avatar?.url} icon={<UserOutlined />} />
+              <Avatar src={user?.avatar?.url || undefined} icon={<UserOutlined />} />
               <span style={{ fontWeight: 500 }}>{user?.name || 'Admin'}</span>
             </div>
           </Dropdown>

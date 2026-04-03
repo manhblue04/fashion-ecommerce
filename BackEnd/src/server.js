@@ -2,6 +2,7 @@ require('dotenv').config()
 const dns = require('dns')
 dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1'])
 
+const http = require('http')
 const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
@@ -9,13 +10,18 @@ const morgan = require('morgan')
 const rateLimit = require('express-rate-limit')
 const connectDB = require('./config/db')
 const errorHandler = require('./middlewares/errorHandler')
+const { initSocket } = require('./socket')
 
 const app = express()
+const server = http.createServer(app)
 
 connectDB()
 
 // Security
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}))
 app.set('trust proxy', 1)
 
 // CORS — hỗ trợ nhiều origin qua CLIENT_URL (phân tách bằng dấu phẩy)
@@ -66,6 +72,7 @@ app.use('/api/admin', require('./routes/admin.routes'))
 app.use('/api/payment', require('./routes/payment.routes'))
 app.use('/api/outfits', require('./routes/outfit.routes'))
 app.use('/api/notifications', require('./routes/notification.routes'))
+app.use('/api/chat', require('./routes/chat.routes'))
 
 app.get('/api/health', (_req, res) => {
   res.json({ success: true, message: 'Server đang hoạt động' })
@@ -74,8 +81,11 @@ app.get('/api/health', (_req, res) => {
 // Error handler
 app.use(errorHandler)
 
+// Socket.IO
+initSocket(server, allowedOrigins)
+
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server chạy tại port ${PORT} [${process.env.NODE_ENV}]`)
   console.log(`CORS origins: ${allowedOrigins.join(', ')}`)
 })
